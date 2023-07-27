@@ -60,11 +60,6 @@ async function deploy() {
    
    //Create Pair with Factory and Get Address
    await factoryInstance.createPair(tok1Instance.address, tok2Instance.address);
-   const lpAddress = await factoryInstance.getPair(
-      tok1Instance.address,
-      tok2Instance.address
-   );
-   console.log(`Liquidity pool at address: ${lpAddress}`);
    
    //Get Block TimeStamp
    const blockTime = (await ethers.provider.getBlock()).timestamp;
@@ -74,13 +69,37 @@ async function deploy() {
    await routerInstance.addLiquidity(
       tok1Instance.address,
       tok2Instance.address,
-      '1000000000000000000000',
-      '1000000000000000000000',
-      '100000000000000000000',
-      '100000000000000000000',
+      '1000000000',
+      '1000000000',
+      '100000000',
+      '100000000',
       deployerAddress,
-      blockTime + 100
+      blockTime + 1800
    );
+
+   // //Swap
+   // console.log(`Swap...`);
+   // const txResponse = await routerInstance.swapExactTokensForTokens(
+   //    '100000',
+   //    '10000',
+   //    [tok2Instance.address,tok1Instance.address],
+   //    deployerAddress,
+   //    blockTime + 1800
+   // );
+   // console.log("Transaction Hash", txResponse.hash);
+
+   function wait(seconds) {
+      return new Promise(resolve => setTimeout(resolve, seconds * 1000));
+    }
+
+   await wait(10);
+
+   const lpAddress = await factoryInstance.getPair(
+      tok1Instance.address,
+      tok2Instance.address
+   );
+
+   console.log("Liquidity pool at address:", lpAddress);
 }
 
 deploy()

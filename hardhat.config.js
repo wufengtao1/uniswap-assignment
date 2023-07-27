@@ -9,7 +9,7 @@ require('@nomiclabs/hardhat-etherscan');
 // Export your private key as
 //       export PRIVKEY=0x.....
 const privateKey = process.env.PRIVKEY;
-const privateKeyDev = 'your key';
+const privateKeyDev = 'Your Private Key';
 
 module.exports = {
   defaultNetwork: 'hardhat',
@@ -18,7 +18,8 @@ module.exports = {
     hardhat: {},
 
     sepolia: {
-      url: 'https://eth-sepolia-public.unifra.io',
+// RPC URL: https://www.alchemy.com/
+      url: 'https://eth-sepolia.g.alchemy.com/v2/klLLylq_Jmj_oxWKY7yeNKjjE-MOOlTB',
       accounts: [privateKeyDev],
     },
     dev: {
