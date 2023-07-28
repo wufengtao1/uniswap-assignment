@@ -6,16 +6,10 @@ This is a Hardhat setup to deploy the necessary contracts of Uniswap (vulnerable
 
 ## Get Started
 
-Clone repo:
-
-```
-git clone https://github.com/wufengtao1/uniswap-assignment
-cd uniswap-contracts-moonbeam
-```
-
 Install packages:
 
 ```
+cd uniswap-assignment
 npm i
 ```
 
