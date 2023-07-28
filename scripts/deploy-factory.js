@@ -92,7 +92,7 @@ async function deploy() {
       return new Promise(resolve => setTimeout(resolve, seconds * 1000));
     }
 
-   await wait(10);
+   await wait(20);
 
    const lpAddress = await factoryInstance.getPair(
       tok1Instance.address,
