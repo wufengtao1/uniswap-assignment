@@ -27,7 +27,7 @@ Adding Liquidity...
 Error: cannot estimate gas;
 ```
 
-Because Uniswap uses an init_code hash that was changed in the UniswapV2Library contract, you need to obtain the bytecode from `.artifacts/contracts/core/UniswapV2Pair.sol/UniswapV2Pair.json` and calculate the init code using [Keccak-256 Online Tools](http://emn178.github.io/online-tools/keccak_256.html)  with Input type Hex. Afterward, replace the init code in `.contracts/periphery/libraries/UniswapV2Library.sol`.
+Because Uniswap uses an init_code hash that was changed in the UniswapV2Library contract, you need to obtain the bytecode from `./artifacts/contracts/core/UniswapV2Pair.sol/UniswapV2Pair.json` and calculate the init code using [Keccak-256 Online Tools](http://emn178.github.io/online-tools/keccak_256.html)  with Input type Hex. Afterward, replace the init code in `./contracts/periphery/libraries/UniswapV2Library.sol`.
 
 ```solidity
     // calculates the CREATE2 address for a pair without making any external calls
