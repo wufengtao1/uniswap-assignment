@@ -9,7 +9,6 @@ This is a Hardhat setup to deploy the necessary contracts of Uniswap (vulnerable
 Install packages:
 
 ```
-cd uniswap-assignment
 npm i
 ```
 
