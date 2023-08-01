@@ -1,4 +1,6 @@
-const { ethers } = require("hardhat");
+const { ethers, network } = require("hardhat");
+const { writeFile, readFile } = require("./tools");
+const path = require("path");
 
 // Deploy function
 async function deploy() {
@@ -105,6 +107,19 @@ async function deploy() {
   );
 
   console.log("Liquidity pool at address:", lpAddress);
+
+  const deployment = {
+    deployerAddress,
+    wethAddress: wethInstance.address,
+    factoryAddress: factoryInstance.address,
+    routerAddress: routerInstance.address,
+    multicallAddress: multicallInstance.address,
+    tok1Address: tok1Instance.address,
+    tok2Address: tok2Instance.address,
+    lpAddress: lpAddress
+  };
+
+  overWriteSave(deployment);
 }
 
 deploy()
@@ -113,3 +128,21 @@ deploy()
     console.error(error);
     process.exit(1);
   });
+
+const deploymentPath = path.resolve(
+  __dirname,
+  "../deployments/deployment.json"
+);
+function overWriteSave(deployment) {
+  const chainId = network.config.chainId;
+
+  let developments = {};
+  try {
+    developments = JSON.parse(readFile(deploymentPath));
+  } catch (error) {}
+
+  writeFile(
+    deploymentPath,
+    JSON.stringify({ ...developments, ...{ [chainId]: deployment } })
+  );
+}

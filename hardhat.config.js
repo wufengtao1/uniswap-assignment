@@ -5,9 +5,10 @@
 require("@nomiclabs/hardhat-ethers");
 require("@nomiclabs/hardhat-etherscan");
 
+require("./tasks/verify");
+
 // Change private keys accordingly - ONLY FOR DEMOSTRATION PURPOSES - PLEASE STORE PRIVATE KEYS IN A SAFE PLACE
-const privateKeyDev =
-  "7612ecf6c9085e0b1050f949ef28a7c1ff90b34d815bb093ffd5c66d266e5461";
+const privateKeyDev = "XX";
 
 module.exports = {
   defaultNetwork: "hardhat",
@@ -18,7 +19,8 @@ module.exports = {
     sepolia: {
       // Change it to your RPC URL: https://www.alchemy.com/
       url: "https://eth-sepolia.g.alchemy.com/v2/klLLylq_Jmj_oxWKY7yeNKjjE-MOOlTB",
-      accounts: [privateKeyDev]
+      accounts: [privateKeyDev],
+      chainId: 11155111
     },
     dev: {
       url: "http://127.0.0.1:9933",
@@ -49,7 +51,6 @@ module.exports = {
   },
   etherscan: {
     apiKey: {
-      // etherscan(https://etherscan.io/) API Key
       sepolia: "GF2MTB88Z2REPQRJJBZVJM1T2VKT51S1JX"
     }
   },
