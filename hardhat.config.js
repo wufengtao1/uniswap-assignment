@@ -8,7 +8,7 @@ require("@nomiclabs/hardhat-etherscan");
 require("./tasks/verify");
 
 // Change private keys accordingly - ONLY FOR DEMOSTRATION PURPOSES - PLEASE STORE PRIVATE KEYS IN A SAFE PLACE
-const privateKeyDev = "XX";
+const privateKeyDev = "Your_PrivateKey";
 
 module.exports = {
   defaultNetwork: "hardhat",
