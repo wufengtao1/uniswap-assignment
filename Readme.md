@@ -9,7 +9,7 @@ This is a Hardhat setup to deploy the necessary contracts of Uniswap (vulnerable
 Install packages:
 
 ```
-npm i
+yarn
 ```
 
 Modify the private key and RPC as you wish in the `hardhat.config.js` file.
@@ -17,7 +17,7 @@ Modify the private key and RPC as you wish in the `hardhat.config.js` file.
 ### Deploy the contracts and Interact the contracts
 
 ```
-npx hardhat run --network sepolia scripts/deploy-factory.js
+yarn hardhat run --network sepolia scripts/deploy-factory.js
 ```
 
 If encountered
@@ -45,7 +45,7 @@ Because Uniswap uses an init_code hash that was changed in the UniswapV2Library 
 Run it again
 
 ```
-npx hardhat run --network sepolia scripts/deploy-factory.js
+yarn hardhat run --network sepolia scripts/deploy-factory.js
 ```
 
 verify contract:
