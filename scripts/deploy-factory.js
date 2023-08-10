@@ -56,39 +56,38 @@ async function deploy() {
   console.log(`Approving Router on Token1`);
   const approveToken1Tx = await tok1Instance.approve(
     routerInstance.address,
-    "1000000000000000000000000"
+    "1000000000000000000000"
   );
   await approveToken1Tx.wait(1);
   console.log(`Approving Router on Token2`);
   const approveToken2Tx = await tok2Instance.approve(
     routerInstance.address,
-    "1000000000000000000000000"
+    "1000000000000000000000"
   );
   await approveToken2Tx.wait(1);
 
   //Create Pair with Factory and Get Address
-  const createPairTx = await factoryInstance.createPair(
+  const createPairTx1 = await factoryInstance.createPair(
     tok1Instance.address,
-    tok2Instance.address
+    wethInstance.address
   );
-  await createPairTx.wait(1);
+  await createPairTx1.wait(1);
 
   //Get Block TimeStamp
-  const blockTime = (await ethers.provider.getBlock()).timestamp;
+  const blockTime1 = (await ethers.provider.getBlock()).timestamp;
 
   //Add Liquidity
   console.log(`Adding Liquidity...`);
-  const addLiquidityTx = await routerInstance.addLiquidity(
+  const addLiquidityTx1 = await routerInstance.addLiquidityETH(
     tok1Instance.address,
-    tok2Instance.address,
-    "1000000000",
-    "1000000000",
-    "100000000",
-    "100000000",
+    "1000000000000000000000",
+    "100000000000000000000",
+    "10000000000000000",
     deployerAddress,
-    blockTime + 1800
+    blockTime1 + 1800,
+    {value: "100000000000000000"}
   );
-  await addLiquidityTx.wait(1);
+  await addLiquidityTx1.wait(1);
 
   // //Swap
   // console.log(`Swap...`);
@@ -101,12 +100,54 @@ async function deploy() {
   // );
   // console.log("Transaction Hash", txResponse.hash);
 
-  const lpAddress = await factoryInstance.getPair(
+  const lpAddress1 = await factoryInstance.getPair(
     tok1Instance.address,
-    tok2Instance.address
+    wethInstance.address
   );
 
-  console.log("Liquidity pool at address:", lpAddress);
+  console.log("Liquidity pool1 at address:", lpAddress1);
+
+  //Create Pair with Factory and Get Address
+  const createPairTx2 = await factoryInstance.createPair(
+    tok2Instance.address,
+    wethInstance.address
+  );
+  await createPairTx2.wait(1);
+
+  //Get Block TimeStamp
+  const blockTime2 = (await ethers.provider.getBlock()).timestamp;
+
+  //Add Liquidity
+  console.log(`Adding Liquidity...`);
+  const addLiquidityTx2 = await routerInstance.addLiquidityETH(
+    tok2Instance.address,
+    "1000000000000000000000",
+    "100000000000000000000",
+    "10000000000000000",
+    deployerAddress,
+    blockTime2 + 1800,
+    {value: "100000000000000000"}
+  );
+  await addLiquidityTx2.wait(1);
+
+  // //Swap
+  // console.log(`Swap...`);
+  // const txResponse = await routerInstance.swapExactTokensForTokens(
+  //    '100000',
+  //    '10000',
+  //    [tok2Instance.address,tok1Instance.address],
+  //    deployerAddress,
+  //    blockTime + 1800
+  // );
+  // console.log("Transaction Hash", txResponse.hash);
+
+  const lpAddress2 = await factoryInstance.getPair(
+    tok2Instance.address,
+    wethInstance.address
+  );
+
+  console.log("Liquidity pool2 at address:", lpAddress2);
+
 
   const deployment = {
     deployerAddress,
@@ -116,7 +157,8 @@ async function deploy() {
     multicallAddress: multicallInstance.address,
     tok1Address: tok1Instance.address,
     tok2Address: tok2Instance.address,
-    lpAddress: lpAddress
+    lpAddress1: lpAddress1,
+    lpAddress2: lpAddress2,
   };
 
   overWriteSave(deployment);
